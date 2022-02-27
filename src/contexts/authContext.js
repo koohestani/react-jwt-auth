@@ -29,6 +29,16 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     }, [storage]);
 
+    const refresh = useCallback(
+        (token) => {
+            const persistedUser = storage.user();
+            const newUser = { ...persistedUser, ...token };
+            storage.user(newUser);
+            setUser(newUser);
+        },
+        [storage]
+    );
+
     return (
         <AuthContext.Provider
             value={{
@@ -36,6 +46,7 @@ export const AuthProvider = ({ children }) => {
                 user,
                 login,
                 logout,
+                refresh,
             }}
         >
             {children}
