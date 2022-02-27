@@ -12,11 +12,11 @@ export const userPersistor = {
     },
 
     accessToken: () => {
-        return this.user().accessToken;
+        return this.user()?.accessToken;
     },
 
     refreshToken: () => {
-        return this.user().refreshToken;
+        return this.user()?.refreshToken;
     },
 
     removeUser: () => {
