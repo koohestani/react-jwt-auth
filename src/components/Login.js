@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 
+import { authService } from '../services/authService';
+import { useAuth } from '../contexts/authContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 const INIT_CREDENTIALS = {
     email: '',
     password: '',
@@ -7,9 +11,17 @@ const INIT_CREDENTIALS = {
 };
 
 const Login = () => {
-    const [loading, setLoading] = useState(false);
+    const { state } = useLocation();
+    const navigate = useNavigate();
+    const redirect = state?.from ? state.form : '/';
+    
+    const [pending, setPending] = useState(false);
     const [credentials, setCredentials] = useState(INIT_CREDENTIALS);
-
+    const { auth, login } = useAuth();
+    
+    if (auth)
+        return navigate(redirect, { replace: true });
+    
     const onChange = ({ target }) => {
         let { name, value } = target;
         if (target.type === 'checkbox') value = target.checked;
@@ -20,13 +32,19 @@ const Login = () => {
         });
     };
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setPending(true);
         
-        setTimeout(() => {
-            setLoading(false);
-        }, 2000);
+        try {
+            const { status, data } = await authService.login(credentials);
+            if (status === 200)
+                login(data);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setPending(false);
+        }
     };
 
     return (
@@ -71,8 +89,8 @@ const Login = () => {
                     Remember Me
                 </label>
             </div>
-            <button disabled={loading} type='submit' className='btn btn-primary'>
-                {loading ? 'loading ...' : 'submit'}
+            <button disabled={pending} type='submit' className='btn btn-primary'>
+                {pending ? 'pending ...' : 'submit'}
             </button>
         </form>
     );
