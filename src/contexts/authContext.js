@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
         (token) => {
             const persistedUser = storage.user();
             const newUser = { ...persistedUser, ...token };
-            storage.user(newUser);
+            storage.setUser(newUser);
             setUser(newUser);
         },
         [storage]

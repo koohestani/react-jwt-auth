@@ -10,9 +10,8 @@ const useAxiosPrivate = () => {
     useEffect(() => {
         const requestIntercept = axiosPrivate.interceptors.request.use(
             (config) => {
-                if (config.headers['Authorization']) return config;
-
-                config.headers['Authorization'] = `Bearer ${user?.accessToken}`;
+                if (config.headers['x-access-token']) return config;
+                config.headers['x-access-token'] = user?.accessToken;
                 return config;
             },
             (error) => Promise.reject(error)
@@ -21,21 +20,26 @@ const useAxiosPrivate = () => {
         const responseIntercept = axiosPrivate.interceptors.response.use(
             (response) => response,
             async (error) => {
+                if (error?.response?.status !== 401)
+                    return Promise.reject(error);
+
                 const prevReq = error?.config;
-                if (error?.response?.status !== 403 || prevReq?.sent) {
+                if (prevReq?.sent) {
                     logout();
                     return Promise.reject(error);
                 }
 
-                prevReq.sent = true;
-                const response = await authService.refreshToken();
-                refresh(response);
-
-                prevReq.headers[
-                    'Authorization'
-                ] = `Bearer ${user?.accessToken}`;
-
-                return axiosPrivate(prevReq);
+                try {
+                    prevReq.sent = true;
+                    const { status, data } = await authService.refreshToken(user?.refreshToken);
+                    if (status === 200)
+                        refresh(data);
+                    prevReq.headers['x-access-token'] = data?.accessToken;
+                    return axiosPrivate(prevReq);
+                } catch (error) {
+                    logout();
+                    return Promise.reject(error);
+                }
             }
         );
 

@@ -1,35 +1,25 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { authService } from '../services/authService';
 import { useAuth } from '../contexts/authContext';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Navigate, useNavigate } from 'react-router-dom';
 
 const INIT_CREDENTIALS = {
     username: '',
+    email: '',
     password: '',
-    rememberme: true,
 };
 
-const Login = () => {
+const Register = () => {
     const { state } = useLocation();
     const [pending, setPending] = useState(false);
     const [credentials, setCredentials] = useState(INIT_CREDENTIALS);
-    const { auth, login } = useAuth();  
+    const navigate = useNavigate();
+    const { auth } = useAuth();
 
-    useEffect(() => {
-        setCredentials(prevCredentials => ({
-            ...prevCredentials,
-            username: state?.username ? state.username : prevCredentials.username
-        }));
-    }, [state])
-    
-    if (auth)
-        return <Navigate to={state?.from ? state.from : '/'} replace/>
-    
-    const onChange = ({ target }) => {
-        let { name, value } = target;
-        if (target.type === 'checkbox') value = target.checked;
+    if (auth) return <Navigate to={state?.from ? state.form : '/'} replace />;
 
+    const onChange = ({ target: { name, value } }) => {
         setCredentials({
             ...credentials,
             [name]: value,
@@ -39,14 +29,17 @@ const Login = () => {
     const onSubmit = async (e) => {
         e.preventDefault();
         setPending(true);
-        
+
         try {
-            const { status, data } = await authService.login(credentials);
+            const { status, data } = await authService.register(credentials);
             setPending(false);
             if (status === 200)
-                login(data);
-            else
-                console.warn(status, data);
+                navigate('/login', {
+                    state: {
+                        username: credentials.username,
+                    },
+                });
+            else console.warn(status, data);
         } catch (error) {
             console.error(error);
             setPending(false);
@@ -55,7 +48,7 @@ const Login = () => {
 
     return (
         <form className='d-flex flex-column' onSubmit={onSubmit}>
-            <h2 className='mb-4 align-self-center'>LOGIN</h2>
+            <h2 className='mb-4 align-self-center'>REGISTER</h2>
             <div className='mb-3'>
                 <label htmlFor='username' className='form-label'>
                     Username
@@ -66,6 +59,19 @@ const Login = () => {
                     id='username'
                     name='username'
                     value={credentials.username}
+                    onChange={onChange}
+                />
+            </div>
+            <div className='mb-3'>
+                <label htmlFor='email' className='form-label'>
+                    Email
+                </label>
+                <input
+                    type='text'
+                    className='form-control'
+                    id='email'
+                    name='email'
+                    value={credentials.email}
                     onChange={onChange}
                 />
             </div>
@@ -82,24 +88,15 @@ const Login = () => {
                     onChange={onChange}
                 />
             </div>
-            <div className='mb-3 form-check'>
-                <input
-                    type='checkbox'
-                    className='form-check-input'
-                    id='rememberme'
-                    name='rememberme'
-                    checked={credentials.rememberme}
-                    onChange={onChange}
-                />
-                <label className='form-check-label' htmlFor='rememberme'>
-                    Remember Me
-                </label>
-            </div>
-            <button disabled={pending} type='submit' className='btn btn-primary'>
+            <button
+                disabled={pending}
+                type='submit'
+                className='btn btn-primary'
+            >
                 {pending ? 'pending ...' : 'submit'}
             </button>
         </form>
     );
 };
 
-export default Login;
+export default Register;
