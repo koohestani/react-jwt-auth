@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // TODO: read from env,
-const BASE_URL = 'http://localhost:3500';
+const BASE_URL = 'http://localhost:8000';
 
 export const axiosPublic = axios.create({
     baseURL: BASE_URL,

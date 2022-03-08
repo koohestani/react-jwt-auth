@@ -2,25 +2,22 @@ import React, { useState } from 'react';
 
 import { authService } from '../services/authService';
 import { useAuth } from '../contexts/authContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 
 const INIT_CREDENTIALS = {
-    email: '',
+    username: '',
     password: '',
     rememberme: true,
 };
 
 const Login = () => {
     const { state } = useLocation();
-    const navigate = useNavigate();
-    const redirect = state?.from ? state.form : '/';
-    
     const [pending, setPending] = useState(false);
     const [credentials, setCredentials] = useState(INIT_CREDENTIALS);
     const { auth, login } = useAuth();
-    
+
     if (auth)
-        return navigate(redirect, { replace: true });
+        return <Navigate to={state?.from ? state.form : '/'} replace/>
     
     const onChange = ({ target }) => {
         let { name, value } = target;
@@ -40,8 +37,10 @@ const Login = () => {
             const { status, data } = await authService.login(credentials);
             if (status === 200)
                 login(data);
+            else
+                console.warn(status, data);
         } catch (error) {
-            console.log(error);
+            console.error(error);
         } finally {
             setPending(false);
         }
@@ -51,15 +50,15 @@ const Login = () => {
         <form className='d-flex flex-column' onSubmit={onSubmit}>
             <h2 className='mb-4 align-self-center'>LOGIN</h2>
             <div className='mb-3'>
-                <label htmlFor='email' className='form-label'>
-                    Email address
+                <label htmlFor='username' className='form-label'>
+                    Username
                 </label>
                 <input
-                    type='email'
+                    type='text'
                     className='form-control'
-                    id='email'
-                    name='email'
-                    value={credentials.email}
+                    id='username'
+                    name='username'
+                    value={credentials.username}
                     onChange={onChange}
                 />
             </div>

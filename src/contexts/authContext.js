@@ -14,7 +14,7 @@ const getUserState = (storage) => {
 
 export const AuthProvider = ({ children }) => {
     const storage = useStorage();
-    const [user, setUser] = useState(getUserState(storage));
+    const [user, setUser] = useState(() => getUserState(storage));
 
     const login = useCallback(
         (user) => {
