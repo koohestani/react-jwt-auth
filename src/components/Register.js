@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 import { authService } from '../services/authService';
-import { useAuth } from '../contexts/authContext';
-import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const INIT_CREDENTIALS = {
     username: '',
@@ -11,13 +10,9 @@ const INIT_CREDENTIALS = {
 };
 
 const Register = () => {
-    const { state } = useLocation();
     const [pending, setPending] = useState(false);
     const [credentials, setCredentials] = useState(INIT_CREDENTIALS);
     const navigate = useNavigate();
-    const { auth } = useAuth();
-
-    if (auth) return <Navigate to={state?.from ? state.form : '/'} replace />;
 
     const onChange = ({ target: { name, value } }) => {
         setCredentials({

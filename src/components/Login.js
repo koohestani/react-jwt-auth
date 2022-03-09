@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { authService } from '../services/authService';
 import { useAuth } from '../contexts/authContext';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const INIT_CREDENTIALS = {
     username: '',
@@ -12,9 +12,10 @@ const INIT_CREDENTIALS = {
 
 const Login = () => {
     const { state } = useLocation();
+    const navigate = useNavigate(); 
     const [pending, setPending] = useState(false);
     const [credentials, setCredentials] = useState(INIT_CREDENTIALS);
-    const { auth, login } = useAuth();  
+    const { login } = useAuth();  
 
     useEffect(() => {
         setCredentials(prevCredentials => ({
@@ -22,10 +23,7 @@ const Login = () => {
             username: state?.username ? state.username : prevCredentials.username
         }));
     }, [state])
-    
-    if (auth)
-        return <Navigate to={state?.from ? state.from : '/'} replace/>
-    
+        
     const onChange = ({ target }) => {
         let { name, value } = target;
         if (target.type === 'checkbox') value = target.checked;
@@ -44,7 +42,12 @@ const Login = () => {
             const { status, data } = await authService.login(credentials);
             setPending(false);
             if (status === 200)
+            {
                 login(data);
+                navigate(state?.from ? state.from : '/', {
+                    replace: true
+                });
+            }
             else
                 console.warn(status, data);
         } catch (error) {
